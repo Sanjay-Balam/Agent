@@ -16,14 +16,14 @@ except ImportError:
     pass
 
 # Import original components for backward compatibility
-from knowledge_base import (
+from ..knowledge.knowledge_base import (
     MANIM_OBJECTS, MANIM_ANIMATIONS, MANIM_COLORS, MANIM_POSITIONS,
     COMMON_PATTERNS, EXAMPLE_SCRIPTS, get_object_code, get_animation_code,
     get_pattern_code, get_full_script
 )
 
 # Import enhanced components
-from multi_domain_knowledge_base import MultiDomainKnowledgeBase, Domain, get_knowledge_base
+from ..knowledge.multi_domain_knowledge_base import MultiDomainKnowledgeBase, Domain, get_knowledge_base
 
 # Environment variables already loaded above if available
 
@@ -32,13 +32,13 @@ ORIGINAL_LLM_AVAILABLE = False
 ENHANCED_LLM_AVAILABLE = False
 
 try:
-    from inference import ManimInferenceEngine
+    from .inference import ManimInferenceEngine
     ORIGINAL_LLM_AVAILABLE = True
 except ImportError:
     print("Original inference engine not available.")
 
 try:
-    from enhanced_inference import EnhancedInferenceEngine
+    from .enhanced_inference import EnhancedInferenceEngine
     ENHANCED_LLM_AVAILABLE = True
 except ImportError:
     print("Enhanced inference engine not available.")

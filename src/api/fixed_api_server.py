@@ -18,14 +18,14 @@ except ImportError:
     FLASK_AVAILABLE = False
 
 # Always import our components
-from enhanced_agent import EnhancedManimAgent
-from validator import ManimScriptValidator
+from ..models.enhanced_agent import EnhancedManimAgent
+from ..utils.validator import ManimScriptValidator
 
 def start_simple_server():
     """Start the simple HTTP server"""
     print("🚀 Starting Enhanced Manim API Server (Simple HTTP)")
     print("📍 API will be available at: http://localhost:5001")
-    from simple_http_server import run_server
+    from .simple_http_server import run_server
     run_server(5001)
 
 def start_flask_server():
