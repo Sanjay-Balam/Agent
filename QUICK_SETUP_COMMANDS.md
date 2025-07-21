@@ -114,3 +114,6 @@ python api_server.py
 ```
 
 The model files will download automatically with LFS! 🎉
+
+# for training
+ python windows_compatible_training.py --auto

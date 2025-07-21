@@ -4,9 +4,16 @@ API Server for Manim Script Generator
 Modern Flask API to serve the Next.js frontend
 """
 
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
-from agent import ManimAgent
+# Try to import Flask, fall back to simple HTTP server if not available
+FLASK_AVAILABLE = True
+try:
+    from flask import Flask, request, jsonify, send_from_directory
+    from flask_cors import CORS
+except ImportError:
+    print("⚠️ Flask not available, will use simple HTTP server instead...")
+    FLASK_AVAILABLE = False
+
+from enhanced_agent import EnhancedManimAgent
 from validator import ManimScriptValidator
 import os
 import sys
@@ -14,8 +21,12 @@ import json
 import time
 from functools import wraps
 
-app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])  # Allow Next.js dev server
+# Only create Flask app if Flask is available
+if FLASK_AVAILABLE:
+    app = Flask(__name__)
+    CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000"])  # Allow Next.js dev server
+else:
+    app = None
 
 # Initialize global variables
 agent = None
@@ -56,11 +67,12 @@ def initialize_model():
             print(f"❌ Tokenizer file not found: {tokenizer_path}")
             return False
         
-        # Initialize agent with explicit paths
-        agent = ManimAgent(
-            llm_provider="custom",
+        # Initialize enhanced agent with explicit paths
+        agent = EnhancedManimAgent(
+            llm_provider="enhanced",  # Use enhanced multi-domain agent
             model_path=model_path,
-            tokenizer_path=tokenizer_path
+            tokenizer_path=tokenizer_path,
+            use_enhanced_inference=True
         )
         
         # Initialize validator
@@ -296,25 +308,25 @@ def internal_error(error):
     }), 500
 
 if __name__ == '__main__':
-    print("🚀 Starting Manim Script Generator API Server")
+    # If Flask is not available, use simple HTTP server
+    if not FLASK_AVAILABLE:
+        print("🚀 Starting Enhanced Manim API Server (Simple HTTP)")
+        print("📍 API will be available at: http://localhost:5001")
+        # Import and run simple server
+        from simple_http_server import run_server
+        run_server(5001)
+        sys.exit(0)
+    
+    # Continue with Flask server if available
+    print("🚀 Starting Manim Script Generator API Server (Flask)")
     print("=" * 60)
     
-    # Check if model files exist
+    # Check if model files exist (optional for enhanced agent)
     parent_dir = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(parent_dir, "best_model_epoch_10.pth")
     tokenizer_path = os.path.join(parent_dir, "tokenizer.pkl")
     
-    if not os.path.exists(model_path):
-        print(f"❌ Model file not found: {model_path}")
-        print("Please ensure the model is trained and available.")
-        sys.exit(1)
-    
-    if not os.path.exists(tokenizer_path):
-        print(f"❌ Tokenizer file not found: {tokenizer_path}")
-        print("Please ensure the tokenizer is available.")
-        sys.exit(1)
-    
-    # Initialize model
+    # Initialize model (enhanced agent will handle missing files gracefully)
     if initialize_model():
         print("✅ Model loaded successfully!")
         print("🌐 API server starting...")
@@ -332,6 +344,15 @@ if __name__ == '__main__':
             threaded=True
         )
     else:
-        print("❌ Failed to initialize model")
-        print("Please make sure all model files are available and trained")
-        sys.exit(1)
+        print("⚠️ Model initialization had issues, but continuing with template-based generation")
+        print("🌐 API server starting...")
+        print("📍 API available at: http://localhost:5001")
+        print("=" * 60)
+        
+        # Run the server anyway - enhanced agent handles graceful fallbacks
+        app.run(
+            debug=True,
+            port=5001,
+            host='0.0.0.0',
+            threaded=True
+        )
