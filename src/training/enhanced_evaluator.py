@@ -10,11 +10,15 @@ from typing import Dict, List, Tuple, Optional
 from collections import defaultdict
 import numpy as np
 
-from enhanced_model import MultiDomainLLM, MultiDomainLLMConfig
-from enhanced_tokenizer import EnhancedManimTokenizer
-from enhanced_inference import EnhancedInferenceEngine
-from validator import ManimScriptValidator
-from multi_domain_knowledge_base import Domain, get_knowledge_base
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from models.enhanced_model import MultiDomainLLM, MultiDomainLLMConfig
+from models.enhanced_tokenizer import EnhancedManimTokenizer
+from models.enhanced_inference import EnhancedInferenceEngine
+from utils.validator import ManimScriptValidator
+from knowledge.multi_domain_knowledge_base import Domain, get_knowledge_base
 
 class EnhancedModelEvaluator:
     """Comprehensive evaluator for enhanced multi-domain model."""

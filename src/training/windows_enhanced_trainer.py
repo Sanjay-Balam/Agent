@@ -15,9 +15,13 @@ import os
 from typing import List, Dict, Tuple, Optional
 
 # Import enhanced components
-from ..models.enhanced_model import MultiDomainLLM, MultiDomainLLMConfig, Domain
-from ..models.windows_enhanced_tokenizer import EnhancedManimTokenizer
-from ..knowledge.multi_domain_knowledge_base import get_knowledge_base
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from models.enhanced_model import MultiDomainLLM, MultiDomainLLMConfig, Domain
+from models.windows_enhanced_tokenizer import EnhancedManimTokenizer
+from knowledge.multi_domain_knowledge_base import get_knowledge_base
 
 class EnhancedManimDataset(Dataset):
     """Enhanced dataset supporting multi-domain training."""

@@ -7,10 +7,14 @@ while maintaining all existing Manim functionality.
 import random
 import json
 from typing import List, Dict, Tuple, Optional
-from .data_generator import ManimDataGenerator
-from ..knowledge.multi_domain_knowledge_base import MultiDomainKnowledgeBase, Domain
-from ..knowledge.dsa_knowledge_base import DATA_STRUCTURES, ALGORITHMS, DSA_PATTERNS, COMMON_QUESTIONS
-from ..knowledge.system_design_knowledge_base import LLD_PATTERNS, HLD_COMPONENTS, SYSTEM_DESIGN_PATTERNS
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from training.data_generator import ManimDataGenerator
+from knowledge.multi_domain_knowledge_base import MultiDomainKnowledgeBase, Domain
+from knowledge.dsa_knowledge_base import DATA_STRUCTURES, ALGORITHMS, DSA_PATTERNS, COMMON_QUESTIONS
+from knowledge.system_design_knowledge_base import LLD_PATTERNS, HLD_COMPONENTS, SYSTEM_DESIGN_PATTERNS
 
 class DSADataGenerator:
     """Generates training data for DSA topics."""

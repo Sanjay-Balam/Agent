@@ -10,6 +10,7 @@ import time
 import subprocess
 from typing import Optional, Dict
 import json
+import platform
 
 def run_command(command: str, description: str) -> bool:
     """Run a command and track its success."""
@@ -46,19 +47,23 @@ def check_dependencies() -> bool:
     """Check if all required dependencies are available."""
     print("🔍 Checking dependencies...")
     
+    # Get the directory containing this script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    src_dir = os.path.dirname(script_dir)
+    
     required_files = [
-        'enhanced_data_generator.py',
-        'enhanced_tokenizer.py', 
-        'enhanced_model.py',
-        'enhanced_trainer.py',
-        'enhanced_evaluator.py',
-        'multi_domain_knowledge_base.py'
+        ('enhanced_data_generator.py', os.path.join(script_dir, 'enhanced_data_generator.py')),
+        ('enhanced_tokenizer.py', os.path.join(src_dir, 'models', 'enhanced_tokenizer.py')), 
+        ('enhanced_model.py', os.path.join(src_dir, 'models', 'enhanced_model.py')),
+        ('enhanced_trainer.py', os.path.join(script_dir, 'enhanced_trainer.py')),
+        ('enhanced_evaluator.py', os.path.join(script_dir, 'enhanced_evaluator.py')),
+        ('multi_domain_knowledge_base.py', os.path.join(src_dir, 'knowledge', 'multi_domain_knowledge_base.py'))
     ]
     
     missing_files = []
-    for file in required_files:
-        if not os.path.exists(file):
-            missing_files.append(file)
+    for name, path in required_files:
+        if not os.path.exists(path):
+            missing_files.append(name)
     
     if missing_files:
         print("❌ Missing required files:")
@@ -141,11 +146,21 @@ def training_pipeline(skip_data_generation: bool = False,
     print(f"   Batch size: {resources['recommended_batch_size']}")
     print(f"   Estimated time: {resources['estimated_training_time']}")
     
+    # Get proper paths and python command
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    src_dir = os.path.dirname(script_dir)
+    data_dir = os.path.join(os.path.dirname(src_dir), 'data')
+    
+    # Determine python command based on platform
+    python_cmd = "python" if platform.system() == "Windows" else "python3"
+    
     # Step 1: Generate training data (if not skipping)
     if not skip_data_generation:
-        if not os.path.exists('enhanced_training_data.json'):
+        data_file = os.path.join(data_dir, 'enhanced_training_data.json')
+        if not os.path.exists(data_file):
+            project_root = os.path.dirname(os.path.dirname(script_dir))
             success = run_command(
-                'python3 start_training.py',
+                f'cd "{project_root}" && {python_cmd} -m src.training.start_training',
                 'Step 1: Generate Multi-Domain Training Data'
             )
             if not success:
@@ -155,9 +170,10 @@ def training_pipeline(skip_data_generation: bool = False,
     
     # Step 2: Build enhanced tokenizer (if not skipping)
     if not skip_tokenizer:
-        if not os.path.exists('enhanced_tokenizer.pkl'):
+        tokenizer_file = os.path.join(data_dir, 'enhanced_tokenizer.pkl')
+        if not os.path.exists(tokenizer_file):
             success = run_command(
-                'python3 enhanced_tokenizer.py',
+                f'{python_cmd} -c "from sys import path; path.append(\'{src_dir}\'); from models.enhanced_tokenizer import build_tokenizer; build_tokenizer()"',
                 'Step 2: Build Enhanced Multi-Domain Tokenizer'
             )
             if not success:
@@ -169,10 +185,10 @@ def training_pipeline(skip_data_generation: bool = False,
     epochs = custom_epochs or 15
     batch_size = custom_batch_size or int(resources['recommended_batch_size'])
     
-    train_command = f'python3 enhanced_trainer.py --epochs {epochs} --batch_size {batch_size}'
-    
+    # Change to project root and run as module
+    project_root = os.path.dirname(os.path.dirname(script_dir))
     success = run_command(
-        'python3 enhanced_trainer.py',
+        f'cd "{project_root}" && {python_cmd} -m src.training.enhanced_trainer --epochs {epochs} --batch_size {batch_size}',
         f'Step 3: Train Enhanced Model ({epochs} epochs, batch size {batch_size})'
     )
     
@@ -181,9 +197,11 @@ def training_pipeline(skip_data_generation: bool = False,
         return False
     
     # Step 4: Evaluate the model
-    if os.path.exists('enhanced_model_checkpoints/enhanced_best_model.pth'):
+    checkpoints_dir = os.path.join(os.path.dirname(src_dir), 'checkpoints')
+    model_path = os.path.join(checkpoints_dir, 'enhanced_best_model.pth')
+    if os.path.exists(model_path):
         success = run_command(
-            'python3 enhanced_evaluator.py',
+            f'cd "{project_root}" && {python_cmd} -m src.training.enhanced_evaluator',
             'Step 4: Evaluate Trained Model'
         )
         

@@ -1,0 +1,3 @@
+[console_scripts]
+manim-llm-api = scripts.api:main
+manim-llm-train = scripts.train:main

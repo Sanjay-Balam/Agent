@@ -16,9 +16,29 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 # Import enhanced components
-from ..models.enhanced_model import MultiDomainLLM, MultiDomainLLMConfig, Domain
-from ..models.enhanced_tokenizer import EnhancedManimTokenizer
-from ..knowledge.multi_domain_knowledge_base import get_knowledge_base
+import sys
+import os
+
+# Add project root to path for both script and module execution
+script_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(script_dir)
+project_root = os.path.dirname(src_dir)
+
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+try:
+    # Try relative imports first (when running as module)
+    from ..models.enhanced_model import MultiDomainLLM, MultiDomainLLMConfig, Domain
+    from ..models.enhanced_tokenizer import EnhancedManimTokenizer
+    from ..knowledge.multi_domain_knowledge_base import get_knowledge_base
+except ImportError:
+    # Fall back to absolute imports (when running as script)
+    from models.enhanced_model import MultiDomainLLM, MultiDomainLLMConfig, Domain
+    from models.enhanced_tokenizer import EnhancedManimTokenizer
+    from knowledge.multi_domain_knowledge_base import get_knowledge_base
 
 class EnhancedManimDataset(Dataset):
     """Enhanced dataset supporting multi-domain training."""
@@ -487,24 +507,37 @@ class EnhancedModelTrainer:
 
 def main():
     """Main training function."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Train Enhanced Multi-Domain LLM')
+    parser.add_argument('--epochs', type=int, default=15, help='Number of training epochs')
+    parser.add_argument('--batch_size', type=int, default=4, help='Training batch size')
+    parser.add_argument('--learning_rate', type=float, default=1e-4, help='Learning rate')
+    
+    args = parser.parse_args()
     
     print("🚀 Enhanced Multi-Domain LLM Training")
     print("=" * 60)
     
-    # Check if training data exists
-    if not os.path.exists("enhanced_train_data.json"):
-        print("❌ Training data not found. Please run:")
-        print("   python3 start_training.py")
+    # Check if training data exists (look in data directory)
+    data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data')
+    train_data_path = os.path.join(data_dir, "enhanced_train_data.json")
+    val_data_path = os.path.join(data_dir, "enhanced_val_data.json")
+    tokenizer_path = os.path.join(data_dir, "enhanced_tokenizer.pkl")
+    
+    if not os.path.exists(train_data_path):
+        print(f"❌ Training data not found at {train_data_path}")
+        print("   Please run data generation first")
         return
     
-    if not os.path.exists("enhanced_tokenizer.pkl"):
-        print("❌ Enhanced tokenizer not found. Please run:")
-        print("   python3 enhanced_tokenizer.py")
+    if not os.path.exists(tokenizer_path):
+        print(f"❌ Enhanced tokenizer not found at {tokenizer_path}")
+        print("   Please run tokenizer generation first")
         return
     
     # Load tokenizer
     print("📚 Loading enhanced tokenizer...")
-    tokenizer = EnhancedManimTokenizer.load("enhanced_tokenizer.pkl")
+    tokenizer = EnhancedManimTokenizer.load(tokenizer_path)
     
     # Create enhanced model configuration
     config = MultiDomainLLMConfig(
@@ -524,17 +557,25 @@ def main():
     print(f"   Layers: {config.n_layers}")
     print(f"   Heads: {config.n_heads}")
     print(f"   Domain Adaptation: {config.enable_domain_adaptation}")
+    print(f"   Epochs: {args.epochs}")
+    print(f"   Batch Size: {args.batch_size}")
+    print(f"   Learning Rate: {args.learning_rate}")
     
     # Create trainer
     trainer = EnhancedModelTrainer(config, tokenizer)
     
+    # Set up checkpoints directory
+    checkpoints_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'checkpoints')
+    os.makedirs(checkpoints_dir, exist_ok=True)
+    
     # Start training
     trainer.train(
-        train_data_file="enhanced_train_data.json",
-        val_data_file="enhanced_val_data.json",
-        num_epochs=15,
-        batch_size=4,  # Reduced for memory efficiency
-        learning_rate=1e-4
+        train_data_file=train_data_path,
+        val_data_file=val_data_path,
+        num_epochs=args.epochs,
+        batch_size=args.batch_size,
+        learning_rate=args.learning_rate,
+        save_dir=checkpoints_dir
     )
     
     print("\n🎉 Training completed successfully!")

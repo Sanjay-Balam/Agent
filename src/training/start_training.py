@@ -4,8 +4,12 @@ Quick Start Training for Enhanced Multi-Domain LLM
 Run this to generate training data and start training process
 """
 
-from enhanced_data_generator import EnhancedDataGenerator
-from multi_domain_knowledge_base import Domain
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from training.enhanced_data_generator import EnhancedDataGenerator
+from knowledge.multi_domain_knowledge_base import Domain
 
 def generate_training_data():
     """Generate comprehensive training dataset"""

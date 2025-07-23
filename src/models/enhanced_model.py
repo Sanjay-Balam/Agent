@@ -12,7 +12,7 @@ from typing import Optional, Tuple, Dict, List
 from enum import Enum
 
 # Import original model components
-from model import (
+from .model import (
     PositionalEncoding, MultiHeadAttention, FeedForward, 
     TransformerBlock, ManimLLM, ManimLLMConfig
 )

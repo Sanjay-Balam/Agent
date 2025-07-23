@@ -239,4 +239,8 @@ MIT License - see [LICENSE](LICENSE) file for details.
 2. **Train**: `manim-llm-train --model enhanced --auto`  
 3. **Use**: `manim-llm-api --server fixed`
 
+## Train the modal command 
+``` python simple_train.py --epochs 15 --batch_size 2```
+
+
 **Transform your development workflow with professional-grade multi-domain AI!** 🎯
